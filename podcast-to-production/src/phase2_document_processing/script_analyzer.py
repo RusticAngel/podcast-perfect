@@ -49,6 +49,6 @@ class ScriptAnalyzer:
         if duration > 45:
             notes.append("Insert a mid-roll break around the halfway mark.")
         if script_data.get("scene_breaks", 0) > 0:
-            notes.append("Use a short音 sting between scene breaks.".replace("音", " "))
+            notes.append("Use a short audio sting between scene breaks.")
         notes.append("Duck background music by 12 dB under dialogue.")
         return notes
