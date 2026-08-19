@@ -48,6 +48,10 @@ async def startup() -> None:
 
 @app.get("/")
 async def root():
+    """Serve the demo front-end (falls back to JSON if the page is missing)."""
+    demo_page = os.path.join(Config.STATIC_DIR, "demo.html")
+    if os.path.exists(demo_page):
+        return FileResponse(demo_page, media_type="text/html")
     return {"message": "Podcast-to-Production Agent API", "status": "running"}
 
 

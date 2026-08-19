@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Podcast-to-Production Agent — Demo</title>
+    <style>
+      :root { color-scheme: dark; }
+      body { margin:0; font:15px/1.6 ui-sans-serif,system-ui,sans-serif; background:#0b0d12; color:#e7e9ee; }
+      .wrap { max-width: 780px; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+      h1 { font-size: 1.8rem; margin: 0 0 .25rem; letter-spacing:-.02em; }
+      p.sub { color:#98a0b3; margin:0 0 2rem; }
+      .card { background:#12151d; border:1px solid #232838; border-radius:14px; padding:1.25rem; margin-bottom:1.25rem; }
+      label { display:block; font-weight:600; margin-bottom:.4rem; font-size:.9rem; }
+      input, select { width:100%; box-sizing:border-box; background:#0b0d12; color:inherit; border:1px solid #2c3245; border-radius:9px; padding:.6rem .7rem; font:inherit; margin-bottom:1rem; }
+      button { background:#5b8cff; color:#05070d; border:0; border-radius:9px; padding:.65rem 1.1rem; font:600 15px/1 inherit; cursor:pointer; }
+      button[disabled] { opacity:.5; cursor:not-allowed; }
+      .steps { list-style:none; padding:0; margin:0; }
+      .steps li { display:flex; gap:.6rem; align-items:center; padding:.35rem 0; color:#98a0b3; }
+      .steps li.active { color:#e7e9ee; }
+      .steps li.done { color:#54d38a; }
+      .dot { width:9px; height:9px; border-radius:50%; background:#2c3245; flex:none; }
+      li.active .dot { background:#5b8cff; animation:pulse 1s infinite; }
+      li.done .dot { background:#54d38a; }
+      @keyframes pulse { 50% { opacity:.3; } }
+      a.dl { display:inline-block; margin:.25rem .5rem .25rem 0; padding:.45rem .8rem; border:1px solid #2c3245; border-radius:9px; color:#9cc0ff; text-decoration:none; font-size:.9rem; }
+      pre { background:#0b0d12; border:1px solid #232838; border-radius:9px; padding:.9rem; overflow:auto; max-height:340px; font-size:.8rem; }
+      .err { color:#ff8080; }
+      .hidden { display:none; }
+      ul.recs { margin:.25rem 0 0; padding-left:1.1rem; color:#c6cbd8; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Podcast-to-Production Agent</h1>
+      <p class="sub">Upload a script PDF and let the Director, Researcher and Audio Producer agents build the episode.</p>
+
+      <div class="card">
+        <label for="file">Script PDF</label>
+        <input id="file" type="file" accept="application/pdf" />
+        <label for="genre">Genre</label>
+        <input id="genre" value="technology" />
+        <label for="mode">Mode</label>
+        <select id="mode">
+          <option value="/upload">Full production (audio + music)</option>
+          <option value="/analyze">Analyze only (no audio)</option>
+        </select>
+        <button id="run">Run production</button>
+      </div>
+
+      <div class="card hidden" id="progress-card">
+        <ul class="steps" id="steps"></ul>
+        <p id="error" class="err"></p>
+      </div>
+
+      <div class="card hidden" id="result-card">
+        <h2 style="font-size:1.05rem;margin:.1rem 0 .6rem;">Artifacts</h2>
+        <div id="downloads"></div>
+        <div id="recs"></div>
+        <h2 style="font-size:1.05rem;margin:1.2rem 0 .6rem;">Raw report</h2>
+        <pre id="raw"></pre>
+      </div>
+    </div>
+
+    <script>
+      const STEPS = [
+        "Parsing PDF script",
+        "Director analyzing structure & tone",
+        "Researcher gathering market intelligence",
+        "Producer generating speech & music",
+        "Compiling production report",
+      ];
+      const stepsEl = document.getElementById("steps");
+      let timer = null;
+
+      function renderSteps(active, done) {
+        stepsEl.innerHTML = STEPS.map((s, i) => {
+          const cls = i < done ? "done" : i === active ? "active" : "";
+          return `<li class="${cls}"><span class="dot"></span>${s}</li>`;
+        }).join("");
+      }
+
+      function startProgress(count) {
+        let i = 0;
+        renderSteps(0, 0);
+        timer = setInterval(() => {
+          if (i < count - 1) { i++; renderSteps(i, i); }
+        }, 2500);
+        return () => { clearInterval(timer); renderSteps(-1, count); };
+      }
+
+      document.getElementById("run").addEventListener("click", async () => {
+        const fileInput = document.getElementById("file");
+        const btn = document.getElementById("run");
+        const err = document.getElementById("error");
+        const mode = document.getElementById("mode").value;
+        err.textContent = "";
+        if (!fileInput.files[0]) { err.textContent = "Choose a PDF first."; document.getElementById("progress-card").classList.remove("hidden"); return; }
+
+        const stepCount = mode === "/analyze" ? 1 : STEPS.length;
+        document.getElementById("progress-card").classList.remove("hidden");
+        document.getElementById("result-card").classList.add("hidden");
+        btn.disabled = true;
+        const finish = startProgress(stepCount);
+
+        try {
+          const fd = new FormData();
+          fd.append("file", fileInput.files[0]);
+          const url = mode === "/upload"
+            ? `/upload?genre=${encodeURIComponent(document.getElementById("genre").value || "general")}`
+            : "/analyze";
+          const res = await fetch(url, { method: "POST", body: fd });
+          const json = await res.json();
+          if (!res.ok) throw new Error(json.detail || `Request failed (${res.status})`);
+          finish();
+          showResult(json);
+        } catch (e) {
+          clearInterval(timer);
+          err.textContent = e.message;
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      function showResult(json) {
+        const card = document.getElementById("result-card");
+        const dl = document.getElementById("downloads");
+        const recsEl = document.getElementById("recs");
+        card.classList.remove("hidden");
+        document.getElementById("raw").textContent = JSON.stringify(json, null, 2);
+
+        const data = json.data || {};
+        const audio = data.audio_production || {};
+        const links = [];
+        if (json.download_url) links.push(["Music bed", json.download_url]);
+        (audio.audio_files || []).forEach((a, i) => {
+          if (a.audio_path) {
+            const name = a.audio_path.split("/").pop();
+            links.push([`${a.speaker || "Segment"} ${i + 1}`, `/download/${name}`]);
+          }
+        });
+        dl.innerHTML = links.length
+          ? links.map(([label, href]) => `<a class="dl" href="${href}" download>${label}</a>`).join("")
+          : `<span style="color:#98a0b3">No audio artifacts (analysis-only run or cloud credentials unavailable).</span>`;
+
+        const recs = data.recommendations || [];
+        recsEl.innerHTML = recs.length
+          ? `<h2 style="font-size:1.05rem;margin:1.2rem 0 .4rem;">Recommendations</h2><ul class="recs">${recs.map(r => `<li>${r}</li>`).join("")}</ul>`
+          : "";
+      }
+    </script>
+  </body>
+</html>

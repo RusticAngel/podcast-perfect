@@ -84,6 +84,7 @@ uvicorn src.main:app --reload --port 8000
 
 | Method | Path | Purpose |
 | --- | --- | --- |
+| `GET` | `/` | Demo front-end: upload a PDF, watch progress, download artifacts |
 | `POST` | `/upload` | Upload a script PDF and run the full production pipeline |
 | `POST` | `/analyze` | Parse and analyse a script without generating audio |
 | `GET` | `/download/{filename}` | Download a generated audio asset |
