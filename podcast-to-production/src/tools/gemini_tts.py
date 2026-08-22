@@ -54,6 +54,16 @@ class GeminiTTSTool:
     ) -> Optional[str]:
         """Generate speech audio from text for a single voice."""
         if not self.client:
+            if ai_gateway.available():
+                try:
+                    return ai_gateway.text_to_speech(
+                        text,
+                        voice=self._resolve_voice(voice),
+                        output_path=self._path("speech", f"{voice}:{text}"),
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    print(f"TTS gateway error: {exc}")
+                    return None
             print("TTS error: GEMINI_API_KEY not configured")
             return None
         try:

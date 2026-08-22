@@ -60,6 +60,8 @@ class AudioProducerAgent(BaseAgent):
             "structure": director_analysis.get("structure", {}),
         }
         try:
+            if not self.vertex_ready:
+                raise RuntimeError("Vertex AI Agent Engine not configured")
             agent = self.create_agent()
             agent.run(params)
         except Exception:  # noqa: BLE001 - tool execution is the source of truth

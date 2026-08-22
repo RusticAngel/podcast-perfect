@@ -8,6 +8,7 @@ except ImportError:  # pragma: no cover
     reasoning_engines = None
 
 from src.phase3_partner_integration.parallel_search import ParallelResearchTool
+from src.tools import ai_gateway
 
 from .base_agent import BaseAgent
 
@@ -55,11 +56,30 @@ class ResearcherAgent(BaseAgent):
             "estimated_duration": script_data.get("estimated_duration", 30),
         }
         try:
+            if not self.vertex_ready:
+                raise RuntimeError("Vertex AI Agent Engine not configured")
             agent = self.create_agent()
             return agent.run(params)
-        except Exception as exc:  # noqa: BLE001 - degrade to raw search
+        except Exception as exc:  # noqa: BLE001 - degrade to gateway + raw search
             result = self._search_podcast_market(params)
             result.update({"fallback": True, "error": str(exc)})
+            if ai_gateway.available():
+                try:
+                    llm = ai_gateway.chat_json(
+                        "Provide podcast market intelligence.\n"
+                        f"Genre: {params['genre']}\nTopics: {params['topics']}\n"
+                        f"Mood: {params['mood']}\n"
+                        f"Estimated duration: {params['estimated_duration']} min\n"
+                        f"Web search results: {result['market_research']}\n\n"
+                        "Return JSON with keys: market_data (object), "
+                        "comparable_podcasts (list of objects with title, why_similar), "
+                        "audience_insights (object), recommendations (list).",
+                        system=self.SYSTEM_INSTRUCTION,
+                    )
+                    result.update(llm)
+                    result["engine"] = "lovable-ai-gateway"
+                except Exception as gw_exc:  # noqa: BLE001
+                    result["gateway_error"] = str(gw_exc)
             return result
 
     def _search_podcast_market(self, research_params: Dict) -> Dict:

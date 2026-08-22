@@ -34,6 +34,18 @@ class SentimentAnalyzerTool:
     def analyze_sentiment(self, script_text: str) -> Dict:
         """Analyze tone and sentiment of script."""
         if not self.client:
+            if ai_gateway.available():
+                try:
+                    return ai_gateway.chat_json(
+                        "Analyze the sentiment and tone of this podcast script:\n"
+                        f"{script_text[:5000]}\n\n"
+                        "Return JSON with keys: overall_tone (positive/neutral/"
+                        "negative), emotional_arc (list), speaker_tone (object), "
+                        "audience_engagement (1-10), recommendations (list).",
+                        system="You are a podcast audio sentiment analyst.",
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    return {"error": str(exc)}
             return {"error": "GEMINI_API_KEY not configured"}
         try:
             response = self.client.models.generate_content(

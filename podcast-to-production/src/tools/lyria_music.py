@@ -8,6 +8,7 @@ from typing import Optional
 import requests
 
 from src.config import Config
+from src.tools.ai_gateway import synthesize_music_bed
 
 LYRIA_MODEL = os.getenv("LYRIA_MODEL", "lyria-003")
 
@@ -43,8 +44,16 @@ class LyriaMusicTool:
     ) -> Optional[str]:
         """Generate background music matching the mood."""
         if not self.api_key:
-            print("Lyria error: LYRIA_API_KEY not configured")
-            return None
+            print("Lyria key missing - rendering local instrumental bed")
+            try:
+                return synthesize_music_bed(
+                    mood,
+                    duration_seconds,
+                    os.path.join(self.output_dir, f"music_{mood}_{duration_seconds}s.wav"),
+                )
+            except Exception as exc:  # noqa: BLE001
+                print(f"Music fallback error: {exc}")
+                return None
 
         prompt = MOOD_PROMPTS.get(mood, MOOD_PROMPTS["neutral"])
         try:
