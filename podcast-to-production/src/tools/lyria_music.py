@@ -3,6 +3,7 @@
 import base64
 import hashlib
 import os
+import re
 from typing import Optional
 
 import requests
@@ -46,10 +47,11 @@ class LyriaMusicTool:
         if not self.api_key:
             print("Lyria key missing - rendering local instrumental bed")
             try:
+                slug = re.sub(r"[^a-z0-9]+", "-", (mood or "neutral").lower())[:24].strip("-")
                 return synthesize_music_bed(
                     mood,
                     duration_seconds,
-                    os.path.join(self.output_dir, f"music_{mood}_{duration_seconds}s.wav"),
+                    os.path.join(self.output_dir, f"music_{slug or 'neutral'}_{duration_seconds}s.wav"),
                 )
             except Exception as exc:  # noqa: BLE001
                 print(f"Music fallback error: {exc}")
