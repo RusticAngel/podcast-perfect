@@ -2,7 +2,12 @@
 
 from typing import Dict
 
-from vertexai.preview import reasoning_engines
+try:  # pragma: no cover - optional dependency
+    from vertexai.preview import reasoning_engines
+except ImportError:  # pragma: no cover
+    reasoning_engines = None
+
+from src.tools import ai_gateway
 
 from .base_agent import BaseAgent
 
@@ -47,10 +52,29 @@ class DirectorAgent(BaseAgent):
             "estimated_duration": script_data.get("estimated_duration", 30),
         }
         try:
+            if not self.vertex_ready:
+                raise RuntimeError("Vertex AI Agent Engine not configured")
             agent = self.create_agent()
             return agent.run(payload)
-        except Exception as exc:  # noqa: BLE001 - degrade to local analysis
+        except Exception as exc:  # noqa: BLE001 - degrade to gateway/local analysis
             local = self._analyze_structure(script_data)
+            if ai_gateway.available():
+                try:
+                    llm = ai_gateway.chat_json(
+                        "Analyze this podcast script for production.\n"
+                        f"Speakers: {payload['speakers']}\n"
+                        f"Script:\n{payload['script_text'][:6000]}\n\n"
+                        "Return JSON with keys: structure (object with intro, "
+                        "segments, outro), speakers (list of objects with name and "
+                        "speaking_style), tone (string), pacing (object per "
+                        "section), production_notes (list of cues).",
+                        system=self.SYSTEM_INSTRUCTION,
+                    )
+                    local.update(llm)
+                    local["engine"] = "lovable-ai-gateway"
+                    return local
+                except Exception as gw_exc:  # noqa: BLE001
+                    local["gateway_error"] = str(gw_exc)
             local.update({
                 "tone": script_data.get("mood", "neutral"),
                 "fallback": True,

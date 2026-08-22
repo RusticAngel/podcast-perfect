@@ -4,8 +4,14 @@ import json
 import os
 from typing import Dict, Optional
 
-from google import genai
-from google.genai import types
+try:  # pragma: no cover - optional dependency
+    from google import genai
+    from google.genai import types
+except ImportError:  # pragma: no cover
+    genai = None
+    types = None
+
+from src.tools import ai_gateway
 
 from src.config import Config
 
@@ -15,7 +21,7 @@ class SentimentAnalyzerTool:
 
     def __init__(self):
         api_key = os.getenv("GEMINI_API_KEY")
-        self.client = genai.Client(api_key=api_key) if api_key else None
+        self.client = genai.Client(api_key=api_key) if api_key and genai else None
         self.model = Config.GEMINI_MODEL
 
     def _parse_json(self, text: str) -> Optional[Dict]:
@@ -28,6 +34,18 @@ class SentimentAnalyzerTool:
     def analyze_sentiment(self, script_text: str) -> Dict:
         """Analyze tone and sentiment of script."""
         if not self.client:
+            if ai_gateway.available():
+                try:
+                    return ai_gateway.chat_json(
+                        "Analyze the sentiment and tone of this podcast script:\n"
+                        f"{script_text[:5000]}\n\n"
+                        "Return JSON with keys: overall_tone (positive/neutral/"
+                        "negative), emotional_arc (list), speaker_tone (object), "
+                        "audience_engagement (1-10), recommendations (list).",
+                        system="You are a podcast audio sentiment analyst.",
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    return {"error": str(exc)}
             return {"error": "GEMINI_API_KEY not configured"}
         try:
             response = self.client.models.generate_content(

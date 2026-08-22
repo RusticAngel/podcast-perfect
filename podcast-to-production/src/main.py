@@ -12,6 +12,7 @@ from src.models.schemas import HealthResponse
 from src.phase2_document_processing.pdf_parser import PDFScriptParser
 from src.phase2_document_processing.script_analyzer import ScriptAnalyzer
 from src.phase2_document_processing.speaker_identifier import SpeakerIdentifier
+from src.tools import audio_utils
 from src.utils.file_handlers import ensure_dirs, resolve_output_path, save_upload
 
 app = FastAPI(
@@ -71,15 +72,36 @@ async def upload_script(
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(500, f"Production failed: {exc}") from exc
 
-    music_path: Optional[str] = result.get("audio_production", {}).get("music_path")
-    download_url = (
-        f"/download/{os.path.basename(music_path)}" if music_path else None
+    production = result.get("audio_production", {})
+    music_path: Optional[str] = production.get("music_path")
+
+    # Stitch the speech clips and duck the music bed under the dialogue.
+    clips = [f["audio_path"] for f in production.get("audio_files", []) if f.get("audio_path")]
+    base = os.path.splitext(os.path.basename(upload_path))[0]
+    dialogue_path = audio_utils.concatenate(
+        clips, os.path.join(Config.OUTPUT_DIR, f"{base}_dialogue.wav")
     )
+    final_path = None
+    if dialogue_path:
+        final_path = audio_utils.mix_with_music(
+            dialogue_path,
+            music_path or "",
+            os.path.join(Config.OUTPUT_DIR, f"{base}_final_episode.wav"),
+        )
+        production["dialogue_track"] = dialogue_path
+        production["final_episode"] = final_path
+        production["final_duration_seconds"] = audio_utils.duration_seconds(
+            final_path or dialogue_path
+        )
+
+    primary = final_path or music_path
+    download_url = f"/download/{os.path.basename(primary)}" if primary else None
 
     return JSONResponse({
         "status": "success",
         "data": result,
         "download_url": download_url,
+        "music_url": f"/download/{os.path.basename(music_path)}" if music_path else None,
         "message": "Podcast production complete!",
     })
 

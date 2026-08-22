@@ -5,8 +5,14 @@ import os
 import wave
 from typing import Dict, List, Optional
 
-from google import genai
-from google.genai import types
+try:  # pragma: no cover - optional dependency
+    from google import genai
+    from google.genai import types
+except ImportError:  # pragma: no cover
+    genai = None
+    types = None
+
+from src.tools import ai_gateway
 
 from src.config import Config
 
@@ -24,7 +30,7 @@ class GeminiTTSTool:
 
     def __init__(self, output_dir: Optional[str] = None):
         api_key = os.getenv("GEMINI_API_KEY")
-        self.client = genai.Client(api_key=api_key) if api_key else None
+        self.client = genai.Client(api_key=api_key) if api_key and genai else None
         self.output_dir = output_dir or Config.OUTPUT_DIR
 
     def _resolve_voice(self, voice: str) -> str:
@@ -48,6 +54,16 @@ class GeminiTTSTool:
     ) -> Optional[str]:
         """Generate speech audio from text for a single voice."""
         if not self.client:
+            if ai_gateway.available():
+                try:
+                    return ai_gateway.text_to_speech(
+                        text,
+                        voice=self._resolve_voice(voice),
+                        output_path=self._path("speech", f"{voice}:{text}"),
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    print(f"TTS gateway error: {exc}")
+                    return None
             print("TTS error: GEMINI_API_KEY not configured")
             return None
         try:
