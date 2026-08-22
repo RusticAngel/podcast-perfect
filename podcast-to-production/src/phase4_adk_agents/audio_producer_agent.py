@@ -2,7 +2,10 @@
 
 from typing import Dict, List
 
-from vertexai.preview import reasoning_engines
+try:  # pragma: no cover - optional dependency
+    from vertexai.preview import reasoning_engines
+except ImportError:  # pragma: no cover
+    reasoning_engines = None
 
 from src.config import Config
 from src.tools.gemini_tts import GeminiTTSTool

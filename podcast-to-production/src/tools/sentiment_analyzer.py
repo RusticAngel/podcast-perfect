@@ -4,8 +4,14 @@ import json
 import os
 from typing import Dict, Optional
 
-from google import genai
-from google.genai import types
+try:  # pragma: no cover - optional dependency
+    from google import genai
+    from google.genai import types
+except ImportError:  # pragma: no cover
+    genai = None
+    types = None
+
+from src.tools import ai_gateway
 
 from src.config import Config
 
@@ -15,7 +21,7 @@ class SentimentAnalyzerTool:
 
     def __init__(self):
         api_key = os.getenv("GEMINI_API_KEY")
-        self.client = genai.Client(api_key=api_key) if api_key else None
+        self.client = genai.Client(api_key=api_key) if api_key and genai else None
         self.model = Config.GEMINI_MODEL
 
     def _parse_json(self, text: str) -> Optional[Dict]:
