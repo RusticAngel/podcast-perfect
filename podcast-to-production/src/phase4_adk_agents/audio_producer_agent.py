@@ -89,7 +89,9 @@ class AudioProducerAgent(BaseAgent):
                 "voice": voice,
             })
 
-        music_path = self.music_tool.generate_music(tone, duration_seconds=30)
+        music_path = self.music_tool.generate_music(
+            self._normalize_mood(tone), duration_seconds=30
+        )
 
         sentiment = self.sentiment_tool.analyze_sentiment(
             script_text=" ".join(s.get("text", "") for s in segments)
@@ -101,6 +103,27 @@ class AudioProducerAgent(BaseAgent):
             "sentiment_analysis": sentiment,
             "total_segments": len(segments),
         }
+
+    @staticmethod
+    def _normalize_mood(tone: str) -> str:
+        """Map a free-form tone description onto a supported music mood."""
+        from src.tools.lyria_music import MOOD_PROMPTS
+
+        text = (tone or "").lower()
+        for mood in MOOD_PROMPTS:
+            if mood in text:
+                return mood
+        keywords = {
+            "informative": "serious",
+            "enthusiastic": "excited",
+            "optimistic": "happy",
+            "reflective": "calm",
+            "tense": "nervous",
+        }
+        for keyword, mood in keywords.items():
+            if keyword in text:
+                return mood
+        return "neutral"
 
     def _assign_voice(self, speaker: str, speakers: List[str]) -> str:
         """Assign TTS voice based on speaker role."""
