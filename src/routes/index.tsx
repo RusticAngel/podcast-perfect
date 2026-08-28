@@ -98,6 +98,10 @@ function Studio() {
   const [showSettings, setShowSettings] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [genre, setGenre] = useState<string>("technology");
+  const [mood, setMood] = useState<string>("auto");
+  const [intensity, setIntensity] = useState<number[]>([60]);
+  const [duck, setDuck] = useState<number[]>([-18]);
+
   const [running, setRunning] = useState(false);
   const [step, setStep] = useState(-1);
   const [error, setError] = useState<string | null>(null);
