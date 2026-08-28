@@ -24,7 +24,13 @@ class PodcastOrchestrator:
         self.script_analyzer = ScriptAnalyzer()
         self.parallel_tool = ParallelResearchTool()
 
-    def process_script(self, pdf_path: str, genre: str = "general") -> Dict:
+    def process_script(
+        self,
+        pdf_path: str,
+        genre: str = "general",
+        music_mood: str = "auto",
+        music_intensity: float = 0.6,
+    ) -> Dict:
         """
         Complete multi-agent pipeline:
         1. Parse PDF -> structured data
@@ -47,7 +53,12 @@ class PodcastOrchestrator:
         research = self.researcher.run(script_data, director_analysis)
 
         print("Step 4: Producer generating audio...")
-        audio_output = self.producer.run(script_data, director_analysis)
+        audio_output = self.producer.run(
+            script_data,
+            director_analysis,
+            music_mood=music_mood,
+            music_intensity=music_intensity,
+        )
 
         print("Orchestration complete.")
 

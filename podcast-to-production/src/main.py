@@ -60,6 +60,9 @@ async def root():
 async def upload_script(
     file: UploadFile = File(...),
     genre: str = "general",
+    music_mood: str = "auto",
+    music_intensity: float = 0.6,
+    duck_db: float = -18.0,
 ):
     """Upload a podcast script PDF and start production."""
     if not (file.filename or "").lower().endswith(".pdf"):
@@ -68,7 +71,14 @@ async def upload_script(
     upload_path = save_upload(file.file, file.filename)
 
     try:
-        result = get_orchestrator().process_script(upload_path, genre)
+        music_intensity = min(max(music_intensity, 0.05), 1.0)
+        duck_db = min(max(duck_db, -40.0), 0.0)
+        result = get_orchestrator().process_script(
+            upload_path,
+            genre,
+            music_mood=music_mood,
+            music_intensity=music_intensity,
+        )
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(500, f"Production failed: {exc}") from exc
 
@@ -87,7 +97,9 @@ async def upload_script(
             dialogue_path,
             music_path or "",
             os.path.join(Config.OUTPUT_DIR, f"{base}_final_episode.wav"),
+            music_gain_db=duck_db,
         )
+        production["music_ducking_db"] = duck_db
         production["dialogue_track"] = dialogue_path
         production["final_episode"] = final_path
         production["final_duration_seconds"] = audio_utils.duration_seconds(

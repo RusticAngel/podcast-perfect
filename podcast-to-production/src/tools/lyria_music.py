@@ -41,23 +41,35 @@ class LyriaMusicTool:
         )
 
     def generate_music(
-        self, mood: str = "calm", duration_seconds: int = 30
+        self,
+        mood: str = "calm",
+        duration_seconds: int = 30,
+        intensity: float = 0.6,
     ) -> Optional[str]:
         """Generate background music matching the mood."""
         if not self.api_key:
             print("Lyria key missing - rendering local instrumental bed")
             try:
                 slug = re.sub(r"[^a-z0-9]+", "-", (mood or "neutral").lower())[:24].strip("-")
+                level = int(round(float(min(max(intensity, 0.05), 1.0)) * 100))
                 return synthesize_music_bed(
                     mood,
                     duration_seconds,
-                    os.path.join(self.output_dir, f"music_{slug or 'neutral'}_{duration_seconds}s.wav"),
+                    os.path.join(
+                        self.output_dir,
+                        f"music_{slug or 'neutral'}_{duration_seconds}s_i{level}.wav",
+                    ),
+                    intensity=intensity,
                 )
             except Exception as exc:  # noqa: BLE001
                 print(f"Music fallback error: {exc}")
                 return None
 
         prompt = MOOD_PROMPTS.get(mood, MOOD_PROMPTS["neutral"])
+        if intensity >= 0.75:
+            prompt = f"{prompt}, bold and driving"
+        elif intensity <= 0.35:
+            prompt = f"{prompt}, very subtle and minimal"
         try:
             response = requests.post(
                 self.base_url,

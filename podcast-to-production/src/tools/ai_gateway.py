@@ -120,7 +120,10 @@ MOOD_CHORDS = {
 
 
 def synthesize_music_bed(
-    mood: str = "neutral", duration_seconds: int = 30, output_path: str = ""
+    mood: str = "neutral",
+    duration_seconds: int = 30,
+    output_path: str = "",
+    intensity: float = 0.6,
 ) -> str:
     """Render a soft instrumental bed locally (used when Lyria is unavailable)."""
     import soundfile as sf
@@ -133,14 +136,21 @@ def synthesize_music_bed(
         lfo = 0.5 + 0.5 * np.sin(2 * np.pi * (0.05 + 0.01 * index) * t)
         bed += np.sin(2 * np.pi * freq * t) * lfo / (index + 2)
     # gentle pulse + fades
-    bed *= 0.6 + 0.4 * np.sin(2 * np.pi * 0.5 * t) ** 2
+    intensity = float(min(max(intensity, 0.05), 1.0))
+    # Higher intensity = faster pulse, deeper movement, hotter bed level.
+    pulse_hz = 0.25 + 1.25 * intensity
+    depth = 0.15 + 0.55 * intensity
+    bed *= (1.0 - depth) + depth * np.sin(2 * np.pi * pulse_hz * t) ** 2
     fade = int(rate * 1.5)
     bed[:fade] *= np.linspace(0, 1, fade)
     bed[-fade:] *= np.linspace(1, 0, fade)
-    bed = (bed / (np.max(np.abs(bed)) or 1.0) * 0.35).astype("float32")
+    peak_level = 0.18 + 0.42 * intensity
+    bed = (bed / (np.max(np.abs(bed)) or 1.0) * peak_level).astype("float32")
 
     if not output_path:
-        digest = hashlib.sha1(f"{mood}{duration_seconds}".encode()).hexdigest()[:12]
+        digest = hashlib.sha1(
+            f"{mood}{duration_seconds}{intensity:.2f}".encode()
+        ).hexdigest()[:12]
         output_path = f"./outputs/music_{digest}.wav"
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
     sf.write(output_path, bed, rate)

@@ -50,7 +50,13 @@ class AudioProducerAgent(BaseAgent):
             "tools": [self._produce_audio],
         })
 
-    def run(self, script_data: Dict, director_analysis: Dict) -> Dict:
+    def run(
+        self,
+        script_data: Dict,
+        director_analysis: Dict,
+        music_mood: str = "",
+        music_intensity: float = 0.6,
+    ) -> Dict:
         """Generate audio assets from script and analysis."""
         params = {
             "dialogue_segments": script_data.get("dialogue_segments", []),
@@ -58,6 +64,8 @@ class AudioProducerAgent(BaseAgent):
             "tone": director_analysis.get("tone", script_data.get("mood", "neutral")),
             "pacing": director_analysis.get("pacing", {}),
             "structure": director_analysis.get("structure", {}),
+            "music_mood": music_mood,
+            "music_intensity": music_intensity,
         }
         try:
             if not self.vertex_ready:
@@ -89,8 +97,13 @@ class AudioProducerAgent(BaseAgent):
                 "voice": voice,
             })
 
+        requested_mood = (production_params.get("music_mood") or "").strip().lower()
+        mood = requested_mood if requested_mood and requested_mood != "auto" else (
+            self._normalize_mood(tone)
+        )
+        intensity = float(production_params.get("music_intensity", 0.6) or 0.6)
         music_path = self.music_tool.generate_music(
-            self._normalize_mood(tone), duration_seconds=30
+            mood, duration_seconds=30, intensity=intensity
         )
 
         sentiment = self.sentiment_tool.analyze_sentiment(
@@ -100,6 +113,8 @@ class AudioProducerAgent(BaseAgent):
         return {
             "audio_files": audio_files,
             "music_path": music_path,
+            "music_mood": mood,
+            "music_intensity": intensity,
             "sentiment_analysis": sentiment,
             "total_segments": len(segments),
         }
