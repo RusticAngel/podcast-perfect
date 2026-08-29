@@ -158,10 +158,17 @@ function Studio() {
     try {
       const body = new FormData();
       body.append("file", file);
-      const res = await fetch(
-        `${apiBase.replace(/\/$/, "")}/upload?genre=${encodeURIComponent(genre)}`,
-        { method: "POST", body },
-      );
+      const params = new URLSearchParams({
+        genre,
+        music_mood: mood,
+        music_intensity: (intensity[0] / 100).toFixed(2),
+        duck_db: String(duck[0]),
+      });
+      const res = await fetch(`${apiBase.replace(/\/$/, "")}/upload?${params}`, {
+        method: "POST",
+        body,
+      });
+
       if (!res.ok) throw new Error(`Studio responded with ${res.status}`);
       const json = (await res.json()) as Report;
       setReport(json);
