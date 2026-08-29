@@ -120,6 +120,9 @@ class AudioProducerAgent(BaseAgent):
             "music_intensity": intensity,
             "sentiment_analysis": sentiment,
             "total_segments": len(segments),
+            "voice_assignments": {
+                f["speaker"]: f["voice"] for f in audio_files if f.get("speaker")
+            },
         }
 
     @staticmethod
