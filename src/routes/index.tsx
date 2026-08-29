@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -61,6 +62,25 @@ const GENRES = [
   "education",
   "news",
 ] as const;
+
+const MOODS = [
+  { value: "auto", label: "Auto (match the script)", hint: "The director picks a bed from the script's tone." },
+  { value: "calm", label: "Calm", hint: "Ambient pads, gentle and unobtrusive." },
+  { value: "happy", label: "Warm & upbeat", hint: "Acoustic bed with light percussion." },
+  { value: "excited", label: "Energetic", hint: "Electronic pulse with drive." },
+  { value: "serious", label: "Documentary", hint: "Restrained, steady strings." },
+  { value: "nervous", label: "Suspenseful", hint: "Sparse pulse and muted plucks." },
+  { value: "sad", label: "Reflective", hint: "Melancholic solo piano." },
+  { value: "funny", label: "Playful", hint: "Ukulele and handclaps." },
+  { value: "neutral", label: "Neutral lo-fi", hint: "Soft instrumental bed." },
+] as const;
+
+function intensityLabel(value: number) {
+  if (value <= 25) return "Barely there";
+  if (value <= 50) return "Gentle";
+  if (value <= 75) return "Present";
+  return "Bold";
+}
 
 const STEPS = [
   { key: "parse", label: "Reading the script", icon: FileText },
