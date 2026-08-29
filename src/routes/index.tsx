@@ -75,6 +75,18 @@ const MOODS = [
   { value: "neutral", label: "Neutral lo-fi", hint: "Soft instrumental bed." },
 ] as const;
 
+const VOICES = [
+  { value: "auto", label: "Auto cast", hint: "Studio picks a voice" },
+  { value: "Kore", label: "Kore", hint: "Warm, measured host" },
+  { value: "Puck", label: "Puck", hint: "Bright and upbeat" },
+  { value: "Charon", label: "Charon", hint: "Deep and steady" },
+  { value: "Aoede", label: "Aoede", hint: "Airy, expressive" },
+  { value: "Fenrir", label: "Fenrir", hint: "Gravelly, forceful" },
+  { value: "Leda", label: "Leda", hint: "Youthful and clear" },
+  { value: "Orus", label: "Orus", hint: "Calm narrator" },
+  { value: "Zephyr", label: "Zephyr", hint: "Light and quick" },
+] as const;
+
 function intensityLabel(value: number) {
   if (value <= 25) return "Barely there";
   if (value <= 50) return "Gentle";
