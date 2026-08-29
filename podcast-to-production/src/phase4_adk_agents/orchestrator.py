@@ -30,6 +30,7 @@ class PodcastOrchestrator:
         genre: str = "general",
         music_mood: str = "auto",
         music_intensity: float = 0.6,
+        voice_map: Dict[str, str] | None = None,
     ) -> Dict:
         """
         Complete multi-agent pipeline:
@@ -58,6 +59,7 @@ class PodcastOrchestrator:
             director_analysis,
             music_mood=music_mood,
             music_intensity=music_intensity,
+            voice_map=voice_map,
         )
 
         print("Orchestration complete.")

@@ -56,6 +56,7 @@ class AudioProducerAgent(BaseAgent):
         director_analysis: Dict,
         music_mood: str = "",
         music_intensity: float = 0.6,
+        voice_map: Dict[str, str] | None = None,
     ) -> Dict:
         """Generate audio assets from script and analysis."""
         params = {
@@ -66,6 +67,7 @@ class AudioProducerAgent(BaseAgent):
             "structure": director_analysis.get("structure", {}),
             "music_mood": music_mood,
             "music_intensity": music_intensity,
+            "voice_map": voice_map or {},
         }
         try:
             if not self.vertex_ready:
@@ -81,6 +83,7 @@ class AudioProducerAgent(BaseAgent):
         segments: List[Dict] = production_params.get("dialogue_segments", [])
         speakers: List[str] = production_params.get("speakers", [])
         tone = production_params.get("tone", "neutral")
+        voice_map: Dict[str, str] = production_params.get("voice_map") or {}
 
         audio_files = []
         for segment in segments:
@@ -88,7 +91,7 @@ class AudioProducerAgent(BaseAgent):
             text = segment.get("text", "")
             if not text:
                 continue
-            voice = self._assign_voice(speaker, speakers)
+            voice = voice_map.get(speaker) or self._assign_voice(speaker, speakers)
             audio_path = self.tts_tool.generate_speech(text, voice)
             audio_files.append({
                 "speaker": speaker,
@@ -117,6 +120,9 @@ class AudioProducerAgent(BaseAgent):
             "music_intensity": intensity,
             "sentiment_analysis": sentiment,
             "total_segments": len(segments),
+            "voice_assignments": {
+                f["speaker"]: f["voice"] for f in audio_files if f.get("speaker")
+            },
         }
 
     @staticmethod

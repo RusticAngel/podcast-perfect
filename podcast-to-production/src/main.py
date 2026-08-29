@@ -1,5 +1,6 @@
 """FastAPI application for the Podcast-to-Production Agent."""
 
+import json
 import os
 from typing import Optional
 
@@ -63,6 +64,7 @@ async def upload_script(
     music_mood: str = "auto",
     music_intensity: float = 0.6,
     duck_db: float = -18.0,
+    voice_map: str = "",
 ):
     """Upload a podcast script PDF and start production."""
     if not (file.filename or "").lower().endswith(".pdf"):
@@ -73,11 +75,22 @@ async def upload_script(
     try:
         music_intensity = min(max(music_intensity, 0.05), 1.0)
         duck_db = min(max(duck_db, -40.0), 0.0)
+        voices = {}
+        if voice_map:
+            try:
+                parsed = json.loads(voice_map)
+                if isinstance(parsed, dict):
+                    voices = {
+                        str(k): str(v) for k, v in parsed.items() if k and v and v != "auto"
+                    }
+            except json.JSONDecodeError as exc:
+                raise HTTPException(400, "voice_map must be valid JSON") from exc
         result = get_orchestrator().process_script(
             upload_path,
             genre,
             music_mood=music_mood,
             music_intensity=music_intensity,
+            voice_map=voices,
         )
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(500, f"Production failed: {exc}") from exc
