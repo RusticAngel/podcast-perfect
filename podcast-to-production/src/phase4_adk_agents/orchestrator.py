@@ -59,6 +59,7 @@ class PodcastOrchestrator:
             director_analysis,
             music_mood=music_mood,
             music_intensity=music_intensity,
+            voice_map=voice_map,
         )
 
         print("Orchestration complete.")
