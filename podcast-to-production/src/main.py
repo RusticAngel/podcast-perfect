@@ -63,6 +63,7 @@ async def upload_script(
     music_mood: str = "auto",
     music_intensity: float = 0.6,
     duck_db: float = -18.0,
+    voice_map: str = "",
 ):
     """Upload a podcast script PDF and start production."""
     if not (file.filename or "").lower().endswith(".pdf"):
