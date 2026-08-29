@@ -300,6 +300,84 @@ function Studio() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <Separator className="my-6" />
+
+          <StepHeading index={3} title="Music & mix" compact />
+          <div className="mt-4 grid gap-6 sm:grid-cols-2">
+            <div>
+              <Label className="text-sm">Mood preset</Label>
+              <Select value={mood} onValueChange={setMood}>
+                <SelectTrigger className="mt-2 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MOODS.map((m) => (
+                    <SelectItem key={m.value} value={m.value}>
+                      {m.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {MOODS.find((m) => m.value === mood)?.hint}
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <div className="flex items-baseline justify-between">
+                  <Label className="text-sm">Intensity</Label>
+                  <span className="text-xs text-muted-foreground">
+                    {intensityLabel(intensity[0] ?? 60)}
+                  </span>
+                </div>
+                <Slider
+                  value={intensity}
+                  onValueChange={setIntensity}
+                  min={10}
+                  max={100}
+                  step={5}
+                  className="mt-3"
+                  aria-label="Music intensity"
+                />
+                <div className="mt-1.5 flex justify-between text-xs text-muted-foreground">
+                  <span>Subtle</span>
+                  <span>Bold</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-baseline justify-between">
+                  <Label className="text-sm">Ducking under dialogue</Label>
+                  <span className="text-xs text-muted-foreground">
+                    {duck[0] ?? -18} dB
+                  </span>
+                </div>
+                <Slider
+                  value={duck}
+                  onValueChange={setDuck}
+                  min={-40}
+                  max={0}
+                  step={1}
+                  className="mt-3"
+                  aria-label="Music ducking level in decibels"
+                />
+                <div className="mt-1.5 flex justify-between text-xs text-muted-foreground">
+                  <span>Music barely there</span>
+                  <span>Music up front</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-7 flex flex-wrap items-center justify-between gap-4">
+            <p className="text-xs text-muted-foreground">
+              {mood === "auto" ? "Mood follows the director's notes" : `${mood} bed`} ·{" "}
+              {intensityLabel(intensity[0] ?? 60).toLowerCase()} · ducked{" "}
+              {Math.abs(duck[0] ?? -18)} dB
+            </p>
             <Button
               size="lg"
               onClick={produce}
@@ -317,6 +395,7 @@ function Studio() {
               )}
             </Button>
           </div>
+
 
           {error && (
             <p className="mt-4 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-foreground">
