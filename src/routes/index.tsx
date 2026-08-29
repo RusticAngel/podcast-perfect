@@ -133,6 +133,10 @@ function Studio() {
   const [mood, setMood] = useState<string>("auto");
   const [intensity, setIntensity] = useState<number[]>([60]);
   const [duck, setDuck] = useState<number[]>([-18]);
+  const [cast, setCast] = useState<string[]>([]);
+  const [castLoading, setCastLoading] = useState(false);
+  const [voices, setVoices] = useState<Record<string, string>>({});
+
 
   const [running, setRunning] = useState(false);
   const [step, setStep] = useState(-1);
