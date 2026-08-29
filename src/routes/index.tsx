@@ -161,9 +161,10 @@ function Studio() {
       const params = new URLSearchParams({
         genre,
         music_mood: mood,
-        music_intensity: (intensity[0] / 100).toFixed(2),
-        duck_db: String(duck[0]),
+        music_intensity: ((intensity[0] ?? 60) / 100).toFixed(2),
+        duck_db: String(duck[0] ?? -18),
       });
+
       const res = await fetch(`${apiBase.replace(/\/$/, "")}/upload?${params}`, {
         method: "POST",
         body,
