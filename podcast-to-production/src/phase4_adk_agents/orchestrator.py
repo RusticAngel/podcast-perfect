@@ -30,6 +30,7 @@ class PodcastOrchestrator:
         genre: str = "general",
         music_mood: str = "auto",
         music_intensity: float = 0.6,
+        voice_map: Dict[str, str] | None = None,
     ) -> Dict:
         """
         Complete multi-agent pipeline:
