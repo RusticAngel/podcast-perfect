@@ -115,7 +115,7 @@ type Report = {
     director_notes?: Record<string, unknown>;
     market_research?: Record<string, unknown>;
     audio_production?: {
-      audio_files?: { speaker?: string; path?: string; url?: string }[];
+      audio_files?: { speaker?: string; path?: string; url?: string; voice?: string }[];
       final_duration_seconds?: number;
       sentiment_analysis?: Record<string, unknown>;
       recommendations?: string[];
@@ -184,7 +184,33 @@ function Studio() {
     }
     setError(null);
     setFile(next);
+    void loadCast(next);
   };
+
+  async function loadCast(pdf: File) {
+    setCast([]);
+    setVoices({});
+    setCastLoading(true);
+    try {
+      const body = new FormData();
+      body.append("file", pdf);
+      const res = await fetch(`${apiBase.replace(/\/$/, "")}/analyze`, {
+        method: "POST",
+        body,
+      });
+      if (!res.ok) throw new Error(`Studio responded with ${res.status}`);
+      const json = (await res.json()) as {
+        script_analysis?: { speakers?: string[] };
+      };
+      const found = json.script_analysis?.speakers ?? [];
+      setCast(found);
+      setVoices(Object.fromEntries(found.map((s) => [s, "auto"])));
+    } catch {
+      setCast([]);
+    } finally {
+      setCastLoading(false);
+    }
+  }
 
   async function produce() {
     if (!file || running) return;
@@ -200,6 +226,12 @@ function Studio() {
         music_intensity: ((intensity[0] ?? 60) / 100).toFixed(2),
         duck_db: String(duck[0] ?? -18),
       });
+      const chosen = Object.fromEntries(
+        Object.entries(voices).filter(([, v]) => v && v !== "auto"),
+      );
+      if (Object.keys(chosen).length) {
+        params.set("voice_map", JSON.stringify(chosen));
+      }
 
       const res = await fetch(`${apiBase.replace(/\/$/, "")}/upload?${params}`, {
         method: "POST",
@@ -340,7 +372,56 @@ function Studio() {
 
           <Separator className="my-6" />
 
-          <StepHeading index={3} title="Music & mix" compact />
+          <StepHeading index={3} title="Cast the voices" compact />
+          {castLoading ? (
+            <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" /> Reading the script for
+              speakers…
+            </p>
+          ) : cast.length ? (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {cast.map((speaker) => {
+                const value = voices[speaker] ?? "auto";
+                return (
+                  <div key={speaker}>
+                    <Label className="flex items-center gap-1.5 text-sm">
+                      <Users className="size-3.5 text-muted-foreground" /> {speaker}
+                    </Label>
+                    <Select
+                      value={value}
+                      onValueChange={(v) =>
+                        setVoices((prev) => ({ ...prev, [speaker]: v }))
+                      }
+                    >
+                      <SelectTrigger className="mt-2 w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VOICES.map((v) => (
+                          <SelectItem key={v.value} value={v.value}>
+                            {v.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="mt-1.5 text-xs text-muted-foreground">
+                      {VOICES.find((v) => v.value === value)?.hint}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-muted-foreground">
+              {file
+                ? "No speakers detected yet — the studio will auto-cast voices."
+                : "Add a script and the speakers will appear here for casting."}
+            </p>
+          )}
+
+          <Separator className="my-6" />
+
+          <StepHeading index={4} title="Music & mix" compact />
           <div className="mt-4 grid gap-6 sm:grid-cols-2">
             <div>
               <Label className="text-sm">Mood preset</Label>
@@ -564,6 +645,9 @@ function Studio() {
                     >
                       <span className="truncate">
                         {i + 1}. {c.speaker ?? "Speaker"}
+                        {c.voice ? (
+                          <span className="text-muted-foreground"> · {c.voice}</span>
+                        ) : null}
                       </span>
                       <a
                         href={url}
