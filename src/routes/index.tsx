@@ -184,7 +184,33 @@ function Studio() {
     }
     setError(null);
     setFile(next);
+    void loadCast(next);
   };
+
+  async function loadCast(pdf: File) {
+    setCast([]);
+    setVoices({});
+    setCastLoading(true);
+    try {
+      const body = new FormData();
+      body.append("file", pdf);
+      const res = await fetch(`${apiBase.replace(/\/$/, "")}/analyze`, {
+        method: "POST",
+        body,
+      });
+      if (!res.ok) throw new Error(`Studio responded with ${res.status}`);
+      const json = (await res.json()) as {
+        script_analysis?: { speakers?: string[] };
+      };
+      const found = json.script_analysis?.speakers ?? [];
+      setCast(found);
+      setVoices(Object.fromEntries(found.map((s) => [s, "auto"])));
+    } catch {
+      setCast([]);
+    } finally {
+      setCastLoading(false);
+    }
+  }
 
   async function produce() {
     if (!file || running) return;
