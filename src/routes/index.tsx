@@ -113,7 +113,13 @@ type Report = {
       topics?: string[];
     };
     director_notes?: Record<string, unknown>;
-    market_research?: Record<string, unknown>;
+    market_research?: {
+      grounded?: boolean;
+      source_provider?: string;
+      comparable_podcasts?: { title?: string; why_similar?: string; source_url?: string }[];
+      market_research?: { title?: string; url?: string; published_date?: string }[];
+      search_errors?: string[];
+    } & Record<string, unknown>;
     audio_production?: {
       audio_files?: { speaker?: string; path?: string; url?: string; voice?: string }[];
       final_duration_seconds?: number;
