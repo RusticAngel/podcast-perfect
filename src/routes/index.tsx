@@ -115,7 +115,7 @@ type Report = {
     director_notes?: Record<string, unknown>;
     market_research?: Record<string, unknown>;
     audio_production?: {
-      audio_files?: { speaker?: string; path?: string; url?: string }[];
+      audio_files?: { speaker?: string; path?: string; url?: string; voice?: string }[];
       final_duration_seconds?: number;
       sentiment_analysis?: Record<string, unknown>;
       recommendations?: string[];
@@ -645,6 +645,9 @@ function Studio() {
                     >
                       <span className="truncate">
                         {i + 1}. {c.speaker ?? "Speaker"}
+                        {c.voice ? (
+                          <span className="text-muted-foreground"> · {c.voice}</span>
+                        ) : null}
                       </span>
                       <a
                         href={url}
