@@ -226,6 +226,12 @@ function Studio() {
         music_intensity: ((intensity[0] ?? 60) / 100).toFixed(2),
         duck_db: String(duck[0] ?? -18),
       });
+      const chosen = Object.fromEntries(
+        Object.entries(voices).filter(([, v]) => v && v !== "auto"),
+      );
+      if (Object.keys(chosen).length) {
+        params.set("voice_map", JSON.stringify(chosen));
+      }
 
       const res = await fetch(`${apiBase.replace(/\/$/, "")}/upload?${params}`, {
         method: "POST",
