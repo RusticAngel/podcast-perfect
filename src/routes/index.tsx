@@ -175,6 +175,9 @@ function Studio() {
   const clips = production?.audio_files ?? [];
   const speakers = report?.data?.script?.speakers ?? [];
   const recommendations = production?.recommendations ?? [];
+  const research = report?.data?.market_research;
+  const comparables = research?.comparable_podcasts ?? [];
+  const sources = research?.market_research ?? [];
 
   const absolute = useMemo(
     () => (url?: string) =>
