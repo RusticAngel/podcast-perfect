@@ -113,7 +113,13 @@ type Report = {
       topics?: string[];
     };
     director_notes?: Record<string, unknown>;
-    market_research?: Record<string, unknown>;
+    market_research?: {
+      grounded?: boolean;
+      source_provider?: string;
+      comparable_podcasts?: { title?: string; why_similar?: string; source_url?: string }[];
+      market_research?: { title?: string; url?: string; published_date?: string }[];
+      search_errors?: string[];
+    } & Record<string, unknown>;
     audio_production?: {
       audio_files?: { speaker?: string; path?: string; url?: string; voice?: string }[];
       final_duration_seconds?: number;
@@ -169,6 +175,9 @@ function Studio() {
   const clips = production?.audio_files ?? [];
   const speakers = report?.data?.script?.speakers ?? [];
   const recommendations = production?.recommendations ?? [];
+  const research = report?.data?.market_research;
+  const comparables = research?.comparable_podcasts ?? [];
+  const sources = research?.market_research ?? [];
 
   const absolute = useMemo(
     () => (url?: string) =>
@@ -633,6 +642,45 @@ function Studio() {
                 )}
               </Panel>
             </div>
+
+            <Panel title="Market research" icon={Search}>
+              {comparables.length ? (
+                <ul className="space-y-3 text-sm">
+                  {comparables.map((c, i) => (
+                    <li key={i} className="rounded-xl bg-secondary/60 px-3 py-2">
+                      <p className="font-medium">{c.title || "Untitled"}</p>
+                      {c.why_similar ? (
+                        <p className="text-muted-foreground">{c.why_similar}</p>
+                      ) : null}
+                      {c.source_url ? (
+                        <a
+                          className="text-primary underline underline-offset-4 break-all"
+                          href={c.source_url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {c.source_url}
+                        </a>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {research?.grounded === false
+                    ? "No live search results — add a Parallel Search API key to see real comparables."
+                    : "No comparables returned."}
+                </p>
+              )}
+              {sources.length ? (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Grounded in {sources.length} Parallel Search result
+                  {sources.length === 1 ? "" : "s"}.
+                </p>
+              ) : null}
+            </Panel>
+
+
 
             <Panel title="Voice clips" icon={FileAudio}>
               <ul className="grid gap-2 sm:grid-cols-2">
