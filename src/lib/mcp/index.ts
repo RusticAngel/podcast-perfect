@@ -1,4 +1,4 @@
-import { defineMcp, type AnyToolDefinition } from "@lovable.dev/mcp-js";
+import { defineMcp } from "@lovable.dev/mcp-js";
 import describePipeline from "./tools/describe-pipeline";
 import listMusicPresets from "./tools/list-music-presets";
 import listVoices from "./tools/list-voices";
@@ -15,5 +15,5 @@ export default defineMcp({
     listVoices,
     listMusicPresets,
     suggestProductionSettings,
-  ] as unknown as AnyToolDefinition[],
+  ] as never,
 });
