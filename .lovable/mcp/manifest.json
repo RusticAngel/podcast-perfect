@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "sdk_version": "1.0.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "podcast-perfect",
+      "version": "0.1.0",
+      "title": "Podcast Perfect"
+    },
+    "tools": [
+      {
+        "name": "describe_pipeline",
+        "title": "Describe the production pipeline",
+        "description": "Explain how the Podcast Perfect studio turns a script PDF into a finished episode: the ordered production stages, the supported genres, and the options accepted when starting a production.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_voices",
+        "title": "List narration voices",
+        "description": "List the Gemini text-to-speech voices this studio can cast for podcast speakers, with a short character hint for each.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_music_presets",
+        "title": "List music presets",
+        "description": "List the music mood presets available for the score, plus the intensity and ducking ranges used when mixing the bed under the dialogue.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "suggest_production_settings",
+        "title": "Suggest production settings",
+        "description": "Recommend a music mood, intensity, ducking level and voice cast for a podcast, based on its genre and number of speakers.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "genre": {
+              "type": "string",
+              "description": "Podcast genre, e.g. technology, true crime, comedy."
+            },
+            "speakers": {
+              "description": "How many distinct speakers appear in the script. Defaults to 2.",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "genre"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
