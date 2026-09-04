@@ -119,3 +119,7 @@ Secrets (`GEMINI_API_KEY`, `PARALLEL_API_KEY`, `LYRIA_API_KEY`) are read from Go
 ## License
 
 Apache 2.0 — see [LICENSE](./LICENSE).
+
+## Video podcast
+
+Every production also renders a talking-heads MP4 (`*_episode_video.mp4`): a studio stage with one card per speaker, the active speaker highlighted, live level meters driven by the real audio envelope, optional burned-in captions and a progress bar. Toggle it in the UI ("Render video podcast") or via the `render_video` / `video_captions` query params on `/upload`. Requires ffmpeg and Pillow on the server.
