@@ -506,6 +506,38 @@ function Studio() {
             </div>
           </div>
 
+          <div className="mt-6 rounded-2xl border border-border/60 bg-background/40 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <Video className="mt-0.5 size-4 text-primary" />
+                <div>
+                  <Label htmlFor="render-video" className="text-sm font-medium">
+                    Render video podcast
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Talking-head stage that switches to whoever is speaking, with live level
+                    meters.
+                  </p>
+                </div>
+              </div>
+              <Switch id="render-video" checked={renderVideo} onCheckedChange={setRenderVideo} />
+            </div>
+            {renderVideo && (
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-border/60 pt-4">
+                <Label htmlFor="video-captions" className="text-sm text-muted-foreground">
+                  Burn in dialogue captions
+                </Label>
+                <Switch
+                  id="video-captions"
+                  checked={videoCaptions}
+                  onCheckedChange={setVideoCaptions}
+                />
+              </div>
+            )}
+          </div>
+
+
+
           <div className="mt-7 flex flex-wrap items-center justify-between gap-4">
             <p className="text-xs text-muted-foreground">
               {mood === "auto" ? "Mood follows the director's notes" : `${mood} bed`} ·{" "}
