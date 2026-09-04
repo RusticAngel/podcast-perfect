@@ -649,6 +649,30 @@ function Studio() {
               </div>
             </div>
 
+            {(report.video_url || production?.video_error) && (
+              <Panel title="Video podcast" icon={Video}>
+                {report.video_url ? (
+                  <>
+                    <video
+                      controls
+                      playsInline
+                      className="w-full rounded-xl border border-border/60 bg-black"
+                      src={absolute(report.video_url)}
+                    />
+                    <a
+                      className="mt-3 inline-flex items-center gap-1.5 text-sm text-primary underline-offset-4 hover:underline"
+                      href={absolute(report.video_url)}
+                      download
+                    >
+                      <Download className="size-3.5" /> Download video (MP4)
+                    </a>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">{production?.video_error}</p>
+                )}
+              </Panel>
+            )}
+
             <div className="grid gap-6 lg:grid-cols-2">
               <Panel title="Music bed" icon={Music4}>
                 {report.music_url ? (
