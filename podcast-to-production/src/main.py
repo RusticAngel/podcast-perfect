@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 from typing import Optional
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
@@ -129,7 +130,8 @@ async def upload_script(
             final_path,
             timeline,
             os.path.join(Config.OUTPUT_DIR, f"{base}_episode_video.mp4"),
-            title=base.replace("_", " ").title(),
+            title=(result.get("script", {}) or {}).get("title")
+            or re.sub(r"^[0-9a-f]{6,}_", "", base).replace("_", " ").title(),
             show_captions=video_captions,
         )
         production["video_episode"] = video_path
