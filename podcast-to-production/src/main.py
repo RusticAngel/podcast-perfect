@@ -121,6 +121,24 @@ async def upload_script(
             final_path or dialogue_path
         )
 
+    # Render the video-podcast (talking heads) cut of the finished episode.
+    video_path = None
+    if render_video and final_path:
+        timeline = video_producer.build_timeline(production.get("audio_files", []))
+        video_path = video_producer.render_episode_video(
+            final_path,
+            timeline,
+            os.path.join(Config.OUTPUT_DIR, f"{base}_episode_video.mp4"),
+            title=base.replace("_", " ").title(),
+            show_captions=video_captions,
+        )
+        production["video_episode"] = video_path
+        production["video_timeline"] = timeline
+        if video_path is None:
+            production["video_error"] = (
+                "Video rendering unavailable (ffmpeg or Pillow missing on the server)."
+            )
+
     primary = final_path or music_path
     download_url = f"/download/{os.path.basename(primary)}" if primary else None
 
@@ -129,6 +147,7 @@ async def upload_script(
         "data": result,
         "download_url": download_url,
         "music_url": f"/download/{os.path.basename(music_path)}" if music_path else None,
+        "video_url": f"/download/{os.path.basename(video_path)}" if video_path else None,
         "message": "Podcast production complete!",
     })
 
