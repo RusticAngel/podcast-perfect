@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 from typing import Optional
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
@@ -13,7 +14,7 @@ from src.models.schemas import HealthResponse
 from src.phase2_document_processing.pdf_parser import PDFScriptParser
 from src.phase2_document_processing.script_analyzer import ScriptAnalyzer
 from src.phase2_document_processing.speaker_identifier import SpeakerIdentifier
-from src.tools import audio_utils
+from src.tools import audio_utils, video_producer
 from src.utils.file_handlers import ensure_dirs, resolve_output_path, save_upload
 
 app = FastAPI(
@@ -65,6 +66,8 @@ async def upload_script(
     music_intensity: float = 0.6,
     duck_db: float = -18.0,
     voice_map: str = "",
+    render_video: bool = True,
+    video_captions: bool = True,
 ):
     """Upload a podcast script PDF and start production."""
     if not (file.filename or "").lower().endswith(".pdf"):
@@ -119,6 +122,25 @@ async def upload_script(
             final_path or dialogue_path
         )
 
+    # Render the video-podcast (talking heads) cut of the finished episode.
+    video_path = None
+    if render_video and final_path:
+        timeline = video_producer.build_timeline(production.get("audio_files", []))
+        video_path = video_producer.render_episode_video(
+            final_path,
+            timeline,
+            os.path.join(Config.OUTPUT_DIR, f"{base}_episode_video.mp4"),
+            title=(result.get("script", {}) or {}).get("title")
+            or re.sub(r"^[0-9a-f]{6,}_", "", base).replace("_", " ").title(),
+            show_captions=video_captions,
+        )
+        production["video_episode"] = video_path
+        production["video_timeline"] = timeline
+        if video_path is None:
+            production["video_error"] = (
+                "Video rendering unavailable (ffmpeg or Pillow missing on the server)."
+            )
+
     primary = final_path or music_path
     download_url = f"/download/{os.path.basename(primary)}" if primary else None
 
@@ -127,6 +149,7 @@ async def upload_script(
         "data": result,
         "download_url": download_url,
         "music_url": f"/download/{os.path.basename(music_path)}" if music_path else None,
+        "video_url": f"/download/{os.path.basename(video_path)}" if video_path else None,
         "message": "Podcast production complete!",
     })
 
@@ -165,7 +188,8 @@ async def download_file(filename: str):
         raise HTTPException(400, str(exc)) from exc
 
     if os.path.exists(file_path):
-        return FileResponse(file_path, media_type="audio/wav", filename=filename)
+        media_type = "video/mp4" if filename.lower().endswith(".mp4") else "audio/wav"
+        return FileResponse(file_path, media_type=media_type, filename=filename)
     raise HTTPException(404, "File not found")
 
 
