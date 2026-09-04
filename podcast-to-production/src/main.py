@@ -13,7 +13,7 @@ from src.models.schemas import HealthResponse
 from src.phase2_document_processing.pdf_parser import PDFScriptParser
 from src.phase2_document_processing.script_analyzer import ScriptAnalyzer
 from src.phase2_document_processing.speaker_identifier import SpeakerIdentifier
-from src.tools import audio_utils
+from src.tools import audio_utils, video_producer
 from src.utils.file_handlers import ensure_dirs, resolve_output_path, save_upload
 
 app = FastAPI(
@@ -186,7 +186,8 @@ async def download_file(filename: str):
         raise HTTPException(400, str(exc)) from exc
 
     if os.path.exists(file_path):
-        return FileResponse(file_path, media_type="audio/wav", filename=filename)
+        media_type = "video/mp4" if filename.lower().endswith(".mp4") else "audio/wav"
+        return FileResponse(file_path, media_type=media_type, filename=filename)
     raise HTTPException(404, "File not found")
 
 
