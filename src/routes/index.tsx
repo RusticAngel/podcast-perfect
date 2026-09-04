@@ -14,6 +14,7 @@ import {
   Sparkles,
   UploadCloud,
   Users,
+  Video,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -105,6 +107,7 @@ const STEPS = [
 type Report = {
   download_url?: string;
   music_url?: string;
+  video_url?: string;
   data?: {
     script?: {
       title?: string;
@@ -123,6 +126,7 @@ type Report = {
     audio_production?: {
       audio_files?: { speaker?: string; path?: string; url?: string; voice?: string }[];
       final_duration_seconds?: number;
+      video_error?: string;
       sentiment_analysis?: Record<string, unknown>;
       recommendations?: string[];
     };
@@ -142,6 +146,8 @@ function Studio() {
   const [cast, setCast] = useState<string[]>([]);
   const [castLoading, setCastLoading] = useState(false);
   const [voices, setVoices] = useState<Record<string, string>>({});
+  const [renderVideo, setRenderVideo] = useState(true);
+  const [videoCaptions, setVideoCaptions] = useState(true);
 
 
   const [running, setRunning] = useState(false);
@@ -234,6 +240,8 @@ function Studio() {
         music_mood: mood,
         music_intensity: ((intensity[0] ?? 60) / 100).toFixed(2),
         duck_db: String(duck[0] ?? -18),
+        render_video: String(renderVideo),
+        video_captions: String(videoCaptions),
       });
       const chosen = Object.fromEntries(
         Object.entries(voices).filter(([, v]) => v && v !== "auto"),
