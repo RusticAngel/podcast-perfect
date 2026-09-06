@@ -5,7 +5,7 @@ export default defineTool({
   name: "describe_pipeline",
   title: "Describe the production pipeline",
   description:
-    "Explain how the Podcast Perfect studio turns a script PDF into a finished episode: the ordered production stages, the supported genres, and the options accepted when starting a production.",
+    "Explain how the PodCraft studio turns a script PDF into a finished episode: the ordered production stages, the supported genres, and the options accepted when starting a production.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: () => ({

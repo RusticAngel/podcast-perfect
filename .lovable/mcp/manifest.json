@@ -15,7 +15,7 @@
       {
         "name": "describe_pipeline",
         "title": "Describe the production pipeline",
-        "description": "Explain how the Podcast Perfect studio turns a script PDF into a finished episode: the ordered production stages, the supported genres, and the options accepted when starting a production.",
+        "description": "Explain how the PodCraft studio turns a script PDF into a finished episode: the ordered production stages, the supported genres, and the options accepted when starting a production.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,

@@ -36,13 +36,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Podcast-to-Production Studio | Script to Finished Episode" },
+      { title: "PodCraft | Script to Finished Podcast Episode" },
       {
         name: "description",
         content:
           "Upload a podcast script PDF and let the multi-agent studio direct, research, voice and score a finished episode you can download.",
       },
-      { property: "og:title", content: "Podcast-to-Production Studio" },
+      { property: "og:title", content: "PodCraft" },
       {
         property: "og:description",
         content:
@@ -284,7 +284,7 @@ function Studio() {
             </span>
             <div>
               <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                Podcast-to-Production
+                PodCraft
               </p>
               <h1 className="text-xl font-semibold sm:text-2xl">Episode Studio</h1>
             </div>
