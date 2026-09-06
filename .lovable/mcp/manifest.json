@@ -7,9 +7,9 @@
   },
   "mcp": {
     "server": {
-      "name": "podcast-perfect",
+      "name": "podcraft",
       "version": "0.1.0",
-      "title": "Podcast Perfect"
+      "title": "PodCraft"
     },
     "tools": [
       {
